@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>ReviewMe !</title>
+        <link rel="stylesheet" href="ReviewMe.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    </head>
+    <body>
+        <div id="review_template" onclick='selectReviewById(this.id);' class="w3-panel w3-blue-grey w3-round-large w3-display-container" style="display: none">
+            <span onclick="deleteReviewById(this.parentElement.id);" class="w3-button w3-large w3-display-topright w3-round-large">&times;</span>
+            <p>CONTENT</p>
+        </div>
+        <div class="row">
+            <div class="column_l">
+                <pre id="editor">//////// JS_REVIEWER HEADER - START ////////
+Language;c_cpp
+//////// JS_REVIEWER HEADER - END   ////////
+</pre>
+                <div class='grid-container'>
+                    <div class='grid-item'>More Lines: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-M</pre></div>
+                    <div class='grid-item'>Less Lines: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-L</pre></div>
+                    <div class='grid-item'>Toggle mode: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-T</pre></div>
+                    <div class='grid-item'>Change Reviewer: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-R</pre></div>
+                    <div class='grid-item'>Create: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-C</pre></div>
+                    <div class='grid-item'>Delete: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-D</pre></div>
+                    <div class='grid-item'>Next: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-N</pre></div>
+                    <div class='grid-item'>Previous: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-P</pre></div>
+                </div>
+            </div>
+            <div class="column_r" id="review_list">
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js" integrity="sha256-5Xkhn3k/1rbXB+Q/DX/2RuAtaB4dRRyQvMs83prFjpM=" crossorigin="anonymous"></script>
+        <script src="ReviewMe.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.session.setMode("ace/mode/plain_text");
+            document.getElementById('editor').style.fontSize='18px';
+            editor.setAutoScrollEditorIntoView(true);
+
+            var nlines = 35;
+            editor.setOption("minLines", nlines);
+            editor.setOption("maxLines", nlines);
+
+            init_JS_Reviewer();
+
+            document.getElementsByClassName("ace_text-input")[0].focus();
+            editor.navigateFileEnd();
+        </script>
+    </body>
+</html>

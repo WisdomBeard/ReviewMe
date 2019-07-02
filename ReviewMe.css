@@ -1,0 +1,43 @@
+
+.ace_editor {
+    border: 1px solid lightgray;
+    margin: auto;
+    width: 100%;
+}
+
+.scrollmargin {
+    height: 80px;
+    text-align: center;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.column_l {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    padding: 5px;
+    float: left;
+    width: 60%;
+}
+.column_r {
+    float: left;
+    width: 40%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+}
+
+.grid-item {
+    text-align: center;
+}
