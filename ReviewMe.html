@@ -7,32 +7,28 @@
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     </head>
     <body>
-        <div id="review_template" onclick='selectReviewById(this.id);' class="w3-panel w3-blue-grey w3-round-large w3-display-container" style="display: none">
-            <span onclick="deleteReviewById(this.parentElement.id);" class="w3-button w3-large w3-display-topright w3-round-large">&times;</span>
+        <div id="review_template" onclick='selectReviewById(this.id);' ondblclick='deleteReviewById(this.id);' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
             <p>CONTENT</p>
         </div>
         <div class="row">
-            <div class="column_l">
-                <pre id="editor">//////// JS_REVIEWER HEADER - START ////////
+            <div class="column_l" id="editor">//////// JS_REVIEWER HEADER - START ////////
 Language;c_cpp
 //////// JS_REVIEWER HEADER - END   ////////
-</pre>
-                <div class='grid-container'>
-                    <div class='grid-item'>More Lines: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-M</pre></div>
-                    <div class='grid-item'>Less Lines: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-L</pre></div>
-                    <div class='grid-item'>Toggle mode: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-T</pre></div>
-                    <div class='grid-item'>Change Reviewer: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-R</pre></div>
-                    <div class='grid-item'>Create: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-C</pre></div>
-                    <div class='grid-item'>Delete: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-D</pre></div>
-                    <div class='grid-item'>Next: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-N</pre></div>
-                    <div class='grid-item'>Previous: <pre class="w3-tag w3-round w3-grey w3-border w3-border-dark-grey">Alt-P</pre></div>
+</div>
+            <div class="column_r">
+                <div class="w3-bar w3-dark-grey">
+                    <a href="javascript: toggleReviewMode();" class="w3-bar-item w3-button w3-border-right">Toggle mode</a>
+                    <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
+                    <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
+                    <a href="javascript: deleteReview();" class="w3-bar-item w3-button w3-border-right">Delete</a>
+                    <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
+                    <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
                 </div>
-            </div>
-            <div class="column_r" id="review_list">
+                <div id="review_list"></div>
             </div>
         </div>
         <div style="text-align: center; position: fixed; bottom: 0; left:50%; width: 200px; margin-left: -100px;">
-            <span style="font-style: italic; font-size: 10px;">ReviewMe is on <a href="https://github.com/WisdomBeard/ReviewMe" target="_blank">GitHub</a> !</span>
+            <span style="font-style: italic; font-size: 12px; color: white;">ReviewMe is on <a href="https://github.com/WisdomBeard/ReviewMe" target="_blank">GitHub</a> !</span>
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js" integrity="sha256-5Xkhn3k/1rbXB+Q/DX/2RuAtaB4dRRyQvMs83prFjpM=" crossorigin="anonymous"></script>
@@ -42,8 +38,6 @@ Language;c_cpp
                 theme: "ace/theme/monokai",
                 mode: "ace/mode/plain_text",
                 autoScrollEditorIntoView: true,
-                minLines: 35,
-                maxLines: 35,
                 showPrintMargin: false
             });
             editor.navigateFileEnd();

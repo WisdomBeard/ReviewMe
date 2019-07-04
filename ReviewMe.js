@@ -60,10 +60,10 @@ function init_JS_Reviewer()
         readOnly: true
     },
     {
-        name: 'toogleReviewMode',
+        name: 'toggleReviewMode',
         bindKey: {win: 'Alt-T',  mac: 'Option-T'},
         exec: function(editor) {
-            toogleReviewMode();
+            toggleReviewMode();
         },
         readOnly: true
     },
@@ -72,32 +72,6 @@ function init_JS_Reviewer()
         bindKey: {win: 'Alt-R',  mac: 'Option-R'},
         exec: function(editor) {
             askReviewer();
-        },
-        readOnly: true
-    },
-    {
-        name: 'moreLines',
-        bindKey: {win: 'Alt-M',  mac: 'Option-M'},
-        exec: function(editor) {
-            var nlines = parseInt(editor.getOption("minLines"));
-            nlines += 5;
-            editor.setOption("minLines", nlines);
-            editor.setOption("maxLines", nlines);
-        },
-        readOnly: true
-    },
-    {
-        name: 'lessLines',
-        bindKey: {win: 'Alt-L',  mac: 'Option-L'},
-        exec: function(editor) {
-            var nlines = editor.getOption("minLines");
-            nlines -= 5;
-            if (nlines < 5)
-            {
-                nlines = 5;
-            }
-            editor.setOption("minLines", nlines);
-            editor.setOption("maxLines", nlines);
         },
         readOnly: true
     }]);
@@ -110,7 +84,7 @@ function init_JS_Reviewer()
         return ace.edit(EDITOR).getReadOnly();
     }
 
-    function toogleReviewMode()
+    function toggleReviewMode()
     {
         if (isReviewMode())
         {
@@ -246,7 +220,7 @@ function init_JS_Reviewer()
 
         var new_rev = document.getElementById("review_template").cloneNode(true);
         new_rev.id = `rev_${REVIEW_COMMENTS.length - 1}`;
-        new_rev.children[1].innerText = review.toString();
+        new_rev.children[0].innerText = review.toString();
         document.getElementById("review_list").appendChild(new_rev);
         new_rev.style.display = '';
     }
@@ -362,12 +336,22 @@ function init_JS_Reviewer()
             return;
         }
 
+        if (REVIEW_COMMENTS.length == 0)
+        {
+            return;
+        }
+
         selectReview((REV_INDEX + 1) % REVIEW_COMMENTS.length);
     }
 
     function previousReview()
     {
         if (!isReviewMode())
+        {
+            return;
+        }
+
+        if (REVIEW_COMMENTS.length == 0)
         {
             return;
         }
@@ -402,11 +386,13 @@ function init_JS_Reviewer()
         var editor = ace.edit(EDITOR);
         var review  = REVIEW_COMMENTS[index];
         var range = editor.getSelectionRange();
+        var select_color = 'w3-blue-grey';
+        var unselect_color = 'w3-grey';
 
         if (REV_INDEX >= 0 && REV_INDEX < REVIEW_COMMENTS.length)
         {
-            document.getElementById('rev_'+REV_INDEX).classList.remove("w3-light-blue");
-            document.getElementById('rev_'+REV_INDEX).classList.add("w3-blue-grey");
+            document.getElementById('rev_'+REV_INDEX).classList.remove(select_color);
+            document.getElementById('rev_'+REV_INDEX).classList.add(unselect_color);
         }
 
         REV_INDEX = index;
@@ -415,7 +401,7 @@ function init_JS_Reviewer()
         range.setEnd(review.torow, review.tocol);
         editor.getSession().getSelection().setSelectionRange(range);
 
-        document.getElementById('rev_'+REV_INDEX).classList.remove("w3-blue-grey");
-        document.getElementById('rev_'+REV_INDEX).classList.add("w3-light-blue");
+        document.getElementById('rev_'+REV_INDEX).classList.remove(unselect_color);
+        document.getElementById('rev_'+REV_INDEX).classList.add(select_color);
     }
 }
