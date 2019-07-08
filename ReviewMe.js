@@ -77,6 +77,11 @@ function init_JS_Reviewer()
     }]);
 }
 
+function changeTheme(newTheme)
+{
+    ace.edit(EDITOR).setOption("theme", "ace/theme/" + newTheme);
+}
+
 // MODE SWITCHING
 {
     function isReviewMode()

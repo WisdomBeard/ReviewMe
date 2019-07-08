@@ -23,6 +23,13 @@ Language;c_cpp
                     <a href="javascript: deleteReview();" class="w3-bar-item w3-button w3-border-right">Delete</a>
                     <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
                     <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
+                    <div class="w3-dropdown-hover w3-border-right">
+                        <button class="w3-button">Themes</button>
+                        <div id="themes_menu" class="w3-dropdown-content w3-bar-block w3-card">
+                            <a href="#" onclick="changeTheme(this.innerText);" class="w3-bar-item w3-button">eclipse</a>
+                            <a href="#" onclick="changeTheme(this.innerText);" class="w3-bar-item w3-button">monokai</a>
+                        </div>
+                    </div>
                 </div>
                 <div id="review_list"></div>
             </div>
