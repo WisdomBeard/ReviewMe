@@ -1,0 +1,34 @@
+.scrollmargin {
+    height: 80px;
+    text-align: center;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.column_l {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    float: left;
+    width: 60%;
+    height: 100vh;
+    padding: 0;
+    border: 0;
+    margin: 0;
+}
+.column_r {
+    float: left;
+    width: 40%;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.w3-bar-item::first-letter {
+    text-decoration: underline;
+}

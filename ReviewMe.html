@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>ReviewMe !</title>
+        <link rel="icon" href="ReviewMe.png">
+        <link rel="stylesheet" href="ReviewMe.css">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    </head>
+    <body>
+        <div id="review_template" onclick='selectReviewById(this.id);' ondblclick='deleteReviewById(this.id);' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
+            <p>CONTENT</p>
+        </div>
+        <div class="row">
+            <div class="column_l" id="editor">//////// JS_REVIEWER HEADER - START ////////
+Language;c_cpp
+//////// JS_REVIEWER HEADER - END   ////////
+</div>
+            <div class="column_r">
+                <div class="w3-bar w3-dark-grey">
+                    <a href="javascript: toggleReviewMode();" class="w3-bar-item w3-button w3-border-right">Toggle mode</a>
+                    <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
+                    <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
+                    <a href="javascript: deleteReview(REV_INDEX);" class="w3-bar-item w3-button w3-border-right">Delete</a>
+                    <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
+                    <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
+                    <div class="w3-dropdown-hover w3-border-right">
+                        <button class="w3-button">Themes</button>
+                        <div id="themes_menu" class="w3-dropdown-content w3-bar-block w3-card">
+                            <a href="#" onclick="changeTheme(this.innerText);" class="w3-bar-item w3-button">eclipse</a>
+                            <a href="#" onclick="changeTheme(this.innerText);" class="w3-bar-item w3-button">monokai</a>
+                        </div>
+                    </div>
+                </div>
+                <div id="review_list"></div>
+            </div>
+        </div>
+        <div style="text-align: center; position: fixed; bottom: 0; left:50%; width: 200px; margin-left: -100px;">
+            <span style="font-style: italic; font-size: 12px; color: white;">ReviewMe is on <a href="https://github.com/WisdomBeard/ReviewMe" target="_blank">GitHub</a> !</span>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js" integrity="sha256-5Xkhn3k/1rbXB+Q/DX/2RuAtaB4dRRyQvMs83prFjpM=" crossorigin="anonymous"></script>
+        <script src="ReviewMe.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            var editor = ace.edit("editor", {
+                theme: "ace/theme/monokai",
+                mode: "ace/mode/plain_text",
+                autoScrollEditorIntoView: true,
+                showPrintMargin: false
+            });
+            editor.navigateFileEnd();
+            init_JS_Reviewer();
+
+            document.getElementById('editor').style.fontSize='18px';
+
+            document.getElementsByClassName("ace_text-input")[0].focus();
+        </script>
+    </body>
+</html>
