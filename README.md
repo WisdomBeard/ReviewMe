@@ -53,4 +53,4 @@ You can switch between two themes:
 * *monokai*: a dark theme (default)
 * *eclipse*: a bright theme
 
-To do so, simple hover over the "Theme" button and click one of the two options.
+To do so, simply hover over the "Theme" button and click one of the two options.
