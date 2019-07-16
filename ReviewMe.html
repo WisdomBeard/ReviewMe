@@ -10,6 +10,7 @@
         <div id="review_template" onclick='selectReviewById(this.id);' ondblclick='deleteReviewById(this.id);' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
             <p>CONTENT</p>
         </div>
+        <a id="mode_template" class="w3-bar-item w3-button" style="display: none;" href="#" onclick="changeMode(this.innerText);">CONTENT</a>
         <div class="row">
             <div class="column_l" id="editor">//////// JS_REVIEWER HEADER - START ////////
 Language;c_cpp
@@ -17,12 +18,7 @@ Language;c_cpp
 </div>
             <div class="column_r">
                 <div class="w3-bar w3-dark-grey">
-                    <a href="javascript: toggleReviewMode();" class="w3-bar-item w3-button w3-border-right">Toggle mode</a>
-                    <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
-                    <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
-                    <a href="javascript: deleteReview(REV_INDEX);" class="w3-bar-item w3-button w3-border-right">Delete</a>
-                    <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
-                    <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
+                    <a class="w3-bar-item" style="display: none;"></a>
                     <div class="w3-dropdown-hover w3-border-right">
                         <button class="w3-button">Themes</button>
                         <div id="themes_menu" class="w3-dropdown-content w3-bar-block w3-card">
@@ -30,6 +26,18 @@ Language;c_cpp
                             <a href="#" onclick="changeTheme(this.innerText);" class="w3-bar-item w3-button">monokai</a>
                         </div>
                     </div>
+                    <div class="w3-dropdown-hover w3-border-right">
+                        <button class="w3-button">Languages</button>
+                        <div id="modes_menu" class="w3-dropdown-content w3-bar-block w3-card">
+                            <input class="w3-input w3-padding" type="text" placeholder="Search.." id="modeFilter" onkeyup="filterMode();">
+                        </div>
+                    </div>
+                    <a href="javascript: toggleReviewMode();" class="w3-bar-item w3-button w3-border-right">Toggle mode</a>
+                    <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
+                    <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
+                    <a href="javascript: deleteReview(REV_INDEX);" class="w3-bar-item w3-button w3-border-right">Delete</a>
+                    <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
+                    <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
                 </div>
                 <div id="review_list"></div>
             </div>
@@ -41,6 +49,27 @@ Language;c_cpp
         <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js" integrity="sha256-5Xkhn3k/1rbXB+Q/DX/2RuAtaB4dRRyQvMs83prFjpM=" crossorigin="anonymous"></script>
         <script src="ReviewMe.js" type="text/javascript" charset="utf-8"></script>
         <script>
+            function filterMode()
+            {
+                var filter, a;
+                filter = document.getElementById("modeFilter").value.toUpperCase();
+                modes_menu = document.getElementById("modes_menu");
+                a = modes_menu.children;
+
+                for (i = 1; i < a.length; i++)
+                {
+                    txtValue = a[i].textContent || a[i].innerText;
+                    if (filter.length > 0 && txtValue.toUpperCase().indexOf(filter) > -1)
+                    {
+                        a[i].style.display = "";
+                    }
+                    else
+                    {
+                        a[i].style.display = "none";
+                    }
+                }
+            }
+
             var editor = ace.edit("editor", {
                 theme: "ace/theme/monokai",
                 mode: "ace/mode/plain_text",
@@ -53,6 +82,173 @@ Language;c_cpp
             document.getElementById('editor').style.fontSize='18px';
 
             document.getElementsByClassName("ace_text-input")[0].focus();
+
+            var modes = [   "abap",
+                            "abc",
+                            "actionscript",
+                            "ada",
+                            "apache_conf",
+                            "apex",
+                            "applescript",
+                            "aql",
+                            "asciidoc",
+                            "asl",
+                            "assembly_x86",
+                            "autohotkey",
+                            "batchfile",
+                            "c9search",
+                            "c_cpp",
+                            "cirru",
+                            "clojure",
+                            "cobol",
+                            "coffee",
+                            "coldfusion",
+                            "crystal",
+                            "csharp",
+                            "csound_document",
+                            "csound_orchestra",
+                            "csound_preprocessor",
+                            "csound_score",
+                            "csp",
+                            "css",
+                            "curly",
+                            "d",
+                            "dart",
+                            "diff",
+                            "doc_comment",
+                            "dockerfile",
+                            "dot",
+                            "drools",
+                            "edifact",
+                            "eiffel",
+                            "elixir",
+                            "elm",
+                            "erlang",
+                            "forth",
+                            "fortran",
+                            "fsharp",
+                            "fsl",
+                            "ftl",
+                            "gcode",
+                            "gherkin",
+                            "gitignore",
+                            "glsl",
+                            "gobstones",
+                            "golang",
+                            "graphqlschema",
+                            "groovy",
+                            "haml",
+                            "handlebars",
+                            "haskell_cabal",
+                            "haskell",
+                            "haxe",
+                            "hjson",
+                            "html_elixir",
+                            "html",
+                            "html_ruby",
+                            "ini",
+                            "io",
+                            "jack",
+                            "jade",
+                            "java",
+                            "javascript",
+                            "js_regex",
+                            "json",
+                            "jsp",
+                            "jssm",
+                            "jsx",
+                            "julia",
+                            "kotlin",
+                            "latex",
+                            "less",
+                            "liquid",
+                            "lisp",
+                            "logiql",
+                            "logtalk",
+                            "lsl",
+                            "lua",
+                            "luapage",
+                            "lucene",
+                            "makefile",
+                            "markdown",
+                            "mask",
+                            "matlab",
+                            "maze",
+                            "mel",
+                            "mixal",
+                            "mushcode",
+                            "mysql",
+                            "nginx",
+                            "nim",
+                            "nix",
+                            "nsis",
+                            "objectivec",
+                            "ocaml",
+                            "pascal",
+                            "perl6",
+                            "perl",
+                            "pgsql",
+                            "php",
+                            "php_laravel_blade",
+                            "pig",
+                            "powershell",
+                            "praat",
+                            "prolog",
+                            "properties",
+                            "protobuf",
+                            "puppet",
+                            "python",
+                            "r",
+                            "razor",
+                            "rdoc",
+                            "red",
+                            "redshift",
+                            "rhtml",
+                            "rst",
+                            "ruby",
+                            "rust",
+                            "sass",
+                            "scad",
+                            "scala",
+                            "scheme",
+                            "scss",
+                            "sh",
+                            "sjs",
+                            "slim",
+                            "smarty",
+                            "soy_template",
+                            "space",
+                            "sparql",
+                            "sql",
+                            "sqlserver",
+                            "stylus",
+                            "svg",
+                            "swift",
+                            "tcl",
+                            "terraform",
+                            "tex",
+                            "text",
+                            "textile",
+                            "toml",
+                            "turtle",
+                            "twig",
+                            "typescript",
+                            "vala",
+                            "vbscript",
+                            "velocity",
+                            "verilog",
+                            "vhdl",
+                            "visualforce",
+                            "wollok",
+                            "xml",
+                            "yaml",
+                            "zeek"];
+            for (var i = 0; i < modes.length; i++) {
+                var mode_choice = document.getElementById("mode_template").cloneNode(true);
+                mode_choice.id = `mode_${modes[i]}`;
+                mode_choice.innerText = modes[i];
+                modes_menu.appendChild(mode_choice);
+            }
         </script>
     </body>
 </html>

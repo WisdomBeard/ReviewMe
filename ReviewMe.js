@@ -82,6 +82,21 @@ function changeTheme(newTheme)
     ace.edit(EDITOR).setOption("theme", "ace/theme/" + newTheme);
 }
 
+function changeMode(newMode)
+{
+    var session = ace.edit(EDITOR).getSession();
+
+    if (isReviewMode())
+    {
+        session.setMode("ace/mode/" + newMode);
+    }
+    else
+    {
+        session.removeFullLines(1, 1);
+        session.insert({row : 1, column : 0}, `Language;${newMode}\n`);
+    }
+}
+
 // MODE SWITCHING
 {
     function isReviewMode()
@@ -155,7 +170,7 @@ function changeTheme(newTheme)
         }
 
         session.setMode("ace/mode/" + language);
-        session.getDocument().removeFullLines(0, 2 + REVIEW_COMMENTS.length);
+        session.removeFullLines(0, 2 + REVIEW_COMMENTS.length);
         editor.clearSelection();
         editor.navigateFileStart();
 
@@ -211,7 +226,7 @@ function changeTheme(newTheme)
         {
             res = "???";
         }
-        CUR_REVIEWER = res;
+        CUR_REVIEWER = res.replace(/;/g, "");
     }
 
     function _createReview(review)
@@ -251,7 +266,7 @@ function changeTheme(newTheme)
             askReviewer();
         }
 
-        var comment = prompt("Comment :");
+        var comment = prompt("Comment :").replace(/;/g, ".,");
         if (comment == null || comment == "")
         {
             alert("Empty comment. Discarded.")
