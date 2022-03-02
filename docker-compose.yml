@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  db:
+    image: redis:7.0-rc2-bullseye
+    # ports:
+    #   - 6379:6379
+  reviewme:
+    image: reviewme:latest
+    ports:
+      - 8080:8080
+    environment:
+      DB_HOST: db
+      DB_PORT: 6379
+      TIMEOUT: 30

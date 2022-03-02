@@ -6,18 +6,14 @@
         <link rel="stylesheet" href="ReviewMe.css">
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     </head>
-    <body>
+    <body ondrop="upload_file(event)" ondragover="return false">
         <div id="review_template" onclick='selectReviewById(this.id);' ondblclick='deleteReviewById(this.id);' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
             <p>CONTENT</p>
         </div>
         <div class="row">
-            <div class="column_l" id="editor">//////// JS_REVIEWER HEADER - START ////////
-Language;c_cpp
-//////// JS_REVIEWER HEADER - END   ////////
-</div>
+            <div class="column_l" id="editor"></div>
             <div class="column_r">
                 <div class="w3-bar w3-dark-grey">
-                    <a href="javascript: toggleReviewMode();" class="w3-bar-item w3-button w3-border-right">Toggle mode</a>
                     <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
                     <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
                     <a href="javascript: deleteReview(REV_INDEX);" class="w3-bar-item w3-button w3-border-right">Delete</a>

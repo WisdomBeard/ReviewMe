@@ -1,22 +1,64 @@
 var EDITOR          = "editor";
-var JS_REV_HEADER_S = "//////// JS_REVIEWER HEADER - START ////////"
-var JS_REV_HEADER_E = "//////// JS_REVIEWER HEADER - END   ////////"
 var REVIEW_COMMENTS = [];
 var CUR_REVIEWER    = "";
-var LINE_SEP        = '\n';
-var FIELD_SEP       = ';';
 var REV_INDEX       = -1;
+var REV_UUID        = "";
+const URL_REGEX = new RegExp('^(https?)(://)([^/:]+)(:[0-9]{1,5})?(/.*)?$');
+
+// Upload
+
+function upload_file(e) {
+    e.preventDefault();
+    var file_obj = e.dataTransfer.files[0];
+    if (file_obj != undefined) {
+        var form_data = new FormData();                  
+        form_data.append('file', file_obj);
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "reviews", true);
+        xhttp.onload = function() {
+            if (xhttp.status == 200) {
+                // Update current URL then reload
+                revUuid = this.responseText;
+                window.history.pushState("", "", "?review_uuid=" + revUuid);
+                document.location.href = document.URL;
+            } else {
+                alert("Error " + xhttp.status + " occurred when trying to upload your file.");
+            }
+        }
+ 
+        xhttp.send(form_data);
+    }
+}
+
+function post_review(review) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "reviews/"+REV_UUID+"/comments", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send(JSON.stringify(review));
+}
 
 class ReviewComment
 {
-    constructor(_reviewer, _fromrow, _fromcol, _torow, _tocol, _comment)
+    static next_id = 0;
+
+    constructor(_reviewer, _fromrow, _fromcol, _torow, _tocol, _comment, _id = undefined)
     {
+        if (_id)
+        {
+            this.id = _id;
+            ReviewComment.next_id = Math.max(ReviewComment.next_id, _id+1);
+        }
+        else
+        {
+            this.id = ReviewComment.next_id++;
+        }
         this.reviewer = _reviewer;
         this.fromrow  = _fromrow;
         this.fromcol  = _fromcol;
         this.torow    = _torow;
         this.tocol    = _tocol;
         this.comment  = _comment;
+
     }
 
     toString()
@@ -60,14 +102,6 @@ function init_JS_Reviewer()
         readOnly: true
     },
     {
-        name: 'toggleReviewMode',
-        bindKey: {win: 'Alt-T',  mac: 'Option-T'},
-        exec: function(editor) {
-            toggleReviewMode();
-        },
-        readOnly: true
-    },
-    {
         name: 'askReviewer',
         bindKey: {win: 'Alt-R',  mac: 'Option-R'},
         exec: function(editor) {
@@ -75,6 +109,28 @@ function init_JS_Reviewer()
         },
         readOnly: true
     }]);
+
+    editor.setReadOnly(true);
+    
+    parts = document.URL.match(/\?review_uuid=([a-fA-F0-9-]{8}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{12})/)
+    if (parts != null && parts[1] != null)
+    {
+        REV_UUID=parts[1];
+
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            var session = editor.getSession();
+            var document = session.getDocument();
+
+            document.setValue("");
+            jval = JSON.parse(this.responseText);
+            document.insertFullLines(0, jval.file_content.split(/\r?\n/));
+
+            digestReviews(jval.comments);
+        }
+        xhttp.open("GET", "reviews/" + parts[1]);
+        xhttp.send();
+    }
 }
 
 function changeTheme(newTheme)
@@ -84,65 +140,18 @@ function changeTheme(newTheme)
 
 // MODE SWITCHING
 {
-    function isReviewMode()
+    function digestReviews(reviews)
     {
-        return ace.edit(EDITOR).getReadOnly();
-    }
-
-    function toggleReviewMode()
-    {
-        if (isReviewMode())
-        {
-            extractReviews();
-        }
-        else
-        {
-            digestReviews();
-        }
-    }
-
-    function digestReviews()
-    {
-        if (isReviewMode())
-        {
-            return;
-        }
-
         var editor = ace.edit(EDITOR);
         var session = editor.getSession();
-        var lines = session.getDocument().getAllLines();
-
-        if (lines[0] != JS_REV_HEADER_S)
-        {
-        	alert("Invalid JS_REVIEWER header. Ignoring 'digest' request.");
-        	return;
-        }
-        editor.setReadOnly(true);
 
         clearReviews();
 
-        var ignore = '', language = '';
-        [ignore, language] = lines[1].split(FIELD_SEP);
-        var nComments = 0;
+        var language = 'cpp';
         var reviewer2reviewsNumber = [];
-        var skip = 2;
-        for (i in lines)
+        for (let index in reviews)
         {
-            if (skip)
-            {
-                skip--;
-                continue;
-            }
-
-            if (lines[i] == JS_REV_HEADER_E)
-            {
-                break;
-            }
-
-            var reviewer = '', sfromrow = '', sfromcol = '', storow = '', stocol = '', comment = '';
-            [reviewer, sfromrow, sfromcol, storow, stocol, comment] = lines[i].split(FIELD_SEP);
-
-            _createReview(new ReviewComment(reviewer, parseInt(sfromrow), parseInt(sfromcol), parseInt(storow), parseInt(stocol), comment));
+            _createReview(new ReviewComment(reviews[index].reviewer, reviews[index].fromrow, reviews[index].fromcol, reviews[index].torow, reviews[index].tocol, reviews[index].comment, reviews[index].id));
 
             if (reviewer2reviewsNumber[reviewer] == undefined)
             {
@@ -155,7 +164,6 @@ function changeTheme(newTheme)
         }
 
         session.setMode("ace/mode/" + language);
-        session.getDocument().removeFullLines(0, 2 + REVIEW_COMMENTS.length);
         editor.clearSelection();
         editor.navigateFileStart();
 
@@ -164,48 +172,12 @@ function changeTheme(newTheme)
             console.log(`${reviewer} : ${reviewer2reviewsNumber[reviewer]} reviews`);
         }
     }
-
-    function extractReviews()
-    {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
-        var editor    = ace.edit(EDITOR);
-        var language  = editor.session.getMode().$id.slice(9);
-        var res       = JS_REV_HEADER_S;
-
-        res += `${LINE_SEP}Language${FIELD_SEP}${language}`;
-
-        for (var i = 0 ; i < REVIEW_COMMENTS.length ; i++)
-        {
-            var review = REVIEW_COMMENTS[i];
-            res += `${LINE_SEP}${review.reviewer}${FIELD_SEP}${review.fromrow}${FIELD_SEP}${review.fromcol}${FIELD_SEP}${review.torow}${FIELD_SEP}${review.tocol}${FIELD_SEP}${review.comment}`;
-        }
-
-        res += `${LINE_SEP}${JS_REV_HEADER_E}${LINE_SEP}`;
-
-        clearReviews();
-
-        editor.clearSelection();
-        editor.session.insert({row : 0, column : 0}, res);
-        editor.navigateFileEnd();
-        editor.selectAll();
-        editor.session.setMode("ace/mode/plain_text");
-        editor.setReadOnly(false);
-    }
 }
 
 // REVIEW CREATION
 {
     function askReviewer()
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         var res = prompt("Who are you ?");
         if (res == null || res == "")
         {
@@ -216,15 +188,10 @@ function changeTheme(newTheme)
 
     function _createReview(review)
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         REVIEW_COMMENTS.push(review);
 
         var new_rev = document.getElementById("review_template").cloneNode(true);
-        new_rev.id = `rev_${REVIEW_COMMENTS.length - 1}`;
+        new_rev.id = "rev_" + review.id;
         new_rev.children[0].innerText = review.toString();
         document.getElementById("review_list").appendChild(new_rev);
         new_rev.style.display = '';
@@ -232,11 +199,6 @@ function changeTheme(newTheme)
 
     function createReview()
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         var editor = ace.edit(EDITOR);
         var range = editor.getSelectionRange();
 
@@ -261,6 +223,8 @@ function changeTheme(newTheme)
         var review = new ReviewComment(CUR_REVIEWER, range.start.row, range.start.column, range.end.row, range.end.column, comment);
 
         _createReview(review);
+
+        post_review(review);
     }
 }
 
@@ -268,11 +232,6 @@ function changeTheme(newTheme)
 {
     function clearReviews()
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         REVIEW_COMMENTS = [];
         REV_INDEX = -1;
 
@@ -285,11 +244,6 @@ function changeTheme(newTheme)
 
     function deleteReviewById(id)
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         var index = parseInt(id.slice(4));
 
         if (index < 0 || index >= REVIEW_COMMENTS.length)
@@ -302,11 +256,6 @@ function changeTheme(newTheme)
 
     function deleteReview(index)
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         if (index < 0 || index >= REVIEW_COMMENTS.length)
         {
             return;
@@ -336,11 +285,6 @@ function changeTheme(newTheme)
 {
     function nextReview()
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         if (REVIEW_COMMENTS.length == 0)
         {
             return;
@@ -351,11 +295,6 @@ function changeTheme(newTheme)
 
     function previousReview()
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         if (REVIEW_COMMENTS.length == 0)
         {
             return;
@@ -378,11 +317,6 @@ function changeTheme(newTheme)
 
     function selectReview(index)
     {
-        if (!isReviewMode())
-        {
-            return;
-        }
-
         if (index < 0 || index >= REVIEW_COMMENTS.length)
         {
             return;
