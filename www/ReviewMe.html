@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     </head>
     <body ondrop="upload_file(event)" ondragover="return false">
-        <div id="review_template" onclick='selectReviewById(this.id);' ondblclick='deleteReviewById(this.id);' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
+        <div id="review_template" onclick='selectReview(this);' ondblclick='selectReview(this);deleteReview();' class="w3-panel w3-grey w3-round-large w3-display-container w3-margin" style="display: none">
             <p>CONTENT</p>
         </div>
         <div class="row">
@@ -16,9 +16,10 @@
                 <div class="w3-bar w3-dark-grey">
                     <a href="javascript: askReviewer();" class="w3-bar-item w3-button w3-border-right">Reviewer</a>
                     <a href="javascript: createReview();" class="w3-bar-item w3-button w3-border-right">Create</a>
-                    <a href="javascript: deleteReview(REV_INDEX);" class="w3-bar-item w3-button w3-border-right">Delete</a>
+                    <a href="javascript: deleteReview();" class="w3-bar-item w3-button w3-border-right">Delete</a>
                     <a href="javascript: previousReview();" class="w3-bar-item w3-button w3-border-right">Previous</a>
                     <a href="javascript: nextReview();" class="w3-bar-item w3-button w3-border-right">Next</a>
+                    <a href="javascript: refreshReviews();" class="w3-bar-item w3-button w3-border-right">Refresh</a>
                     <div class="w3-dropdown-hover w3-border-right">
                         <button class="w3-button">Themes</button>
                         <div id="themes_menu" class="w3-dropdown-content w3-bar-block w3-card">

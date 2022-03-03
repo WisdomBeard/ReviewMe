@@ -171,6 +171,16 @@ int main(int argc, char* argv[])
             return static_cast< int >(HTTP_STATUS_OK);
         });
 
+        router.Delete("/reviews/{uuid}/comments/{revid}", [&redis](HttpRequest* req, HttpResponse* resp) {
+            if (redis.hdel(req->query_params["uuid"], req->query_params["revid"]) == 1)
+            {
+                return static_cast< int >(HTTP_STATUS_OK);
+            }
+            else
+            {
+                return static_cast< int >(HTTP_STATUS_NOT_FOUND);
+            }
+        });
 
         router.GET("/{file}", [](HttpRequest* req, HttpResponse* resp) {
             string fileName = req->query_params["file"];

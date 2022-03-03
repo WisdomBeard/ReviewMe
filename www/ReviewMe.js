@@ -1,12 +1,13 @@
 var EDITOR          = "editor";
-var REVIEW_COMMENTS = [];
+var REVIEW_COMMENTS = new Map();
+var CUR_COMM_ELMT   = null;
 var CUR_REVIEWER    = "";
-var REV_INDEX       = -1;
 var REV_UUID        = "";
+var REV_COMM_LIST   = document.getElementById("review_list");
 const URL_REGEX     = new RegExp('^(https?)(://)([^/:]+)(:[0-9]{1,5})?(/.*)?$');
 var MODELIST        = ace.require("ace/ext/modelist");
 
-// Upload
+// Comm' with backend
 
 function upload_file(e) {
     e.preventDefault();
@@ -31,12 +32,21 @@ function upload_file(e) {
     }
 }
 
-function post_review(review) {
+function post_review_comment(review_comment) {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "reviews/"+REV_UUID+"/comments", true);
     xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send(JSON.stringify(review));
+    xhttp.send(JSON.stringify(review_comment));
 }
+
+function delete_review_comment_by_id(review_comment_id) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", "reviews/"+REV_UUID+"/comments/"+review_comment_id, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+}
+
+// ReviewComment class
 
 class ReviewComment
 {
@@ -59,7 +69,6 @@ class ReviewComment
         this.torow    = _torow;
         this.tocol    = _tocol;
         this.comment  = _comment;
-
     }
 
     toString()
@@ -71,6 +80,14 @@ class ReviewComment
 function init_JS_Reviewer()
 {
     editor.commands.addCommands([{
+        name: 'refreshReviews',
+        bindKey: {win: 'Alt-R',  mac: 'Option-R'},
+        exec: function(editor) {
+            refreshReviews();
+        },
+        readOnly: true
+    },
+    {
         name: 'nextReview',
         bindKey: {win: 'Alt-N',  mac: 'Option-N'},
         exec: function(editor) {
@@ -90,7 +107,7 @@ function init_JS_Reviewer()
         name: 'deleteReview',
         bindKey: {win: 'Alt-D',  mac: 'Option-D'},
         exec: function(editor) {
-            deleteReview(REV_INDEX);
+            deleteReview();
         },
         readOnly: true
     },
@@ -117,7 +134,19 @@ function init_JS_Reviewer()
     if (parts != null && parts[1] != null)
     {
         REV_UUID=parts[1];
+        refreshReviews();
+    }
+}
 
+function changeTheme(newTheme)
+{
+    ace.edit(EDITOR).setOption("theme", "ace/theme/" + newTheme);
+}
+
+// REVIEW LIST REFRESH
+{
+    function refreshReviews()
+    {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             var session = editor.getSession();
@@ -127,7 +156,7 @@ function init_JS_Reviewer()
             jval = JSON.parse(this.responseText);
             document.insertFullLines(0, jval.file_content.split(/\r?\n/));
 
-            clearReviews();
+            clearLocalReviews();
 
             let reviews = jval.comments;
 
@@ -145,11 +174,6 @@ function init_JS_Reviewer()
     }
 }
 
-function changeTheme(newTheme)
-{
-    ace.edit(EDITOR).setOption("theme", "ace/theme/" + newTheme);
-}
-
 // REVIEW CREATION
 {
     function askReviewer()
@@ -164,12 +188,12 @@ function changeTheme(newTheme)
 
     function _createReview(review)
     {
-        REVIEW_COMMENTS.push(review);
+        REVIEW_COMMENTS.set(review.id, review);
 
         var new_rev = document.getElementById("review_template").cloneNode(true);
         new_rev.id = "rev_" + review.id;
         new_rev.children[0].innerText = review.toString();
-        document.getElementById("review_list").appendChild(new_rev);
+        REV_COMM_LIST.appendChild(new_rev);
         new_rev.style.display = '';
     }
 
@@ -200,60 +224,39 @@ function changeTheme(newTheme)
 
         _createReview(review);
 
-        post_review(review);
+        post_review_comment(review);
     }
 }
 
 // REVIEW DELETION
 {
-    function clearReviews()
+    function clearLocalReviews()
     {
-        REVIEW_COMMENTS = [];
-        REV_INDEX = -1;
+        REVIEW_COMMENTS.clear();
 
-        var list = document.getElementById("review_list");
-        while (list.firstChild)
+        while (REV_COMM_LIST.firstChild)
         {
-            list.removeChild(list.firstChild);
+            REV_COMM_LIST.removeChild(REV_COMM_LIST.firstChild);
         }
+        CUR_COMM_ELMT = null;
     }
 
-    function deleteReviewById(id)
+    function deleteReview()
     {
-        var index = parseInt(id.slice(4));
-
-        if (index < 0 || index >= REVIEW_COMMENTS.length)
+        if (CUR_COMM_ELMT == null)
         {
             return;
         }
 
-        deleteReview(index);
-    }
+        var revienCommentId = parseInt(CUR_COMM_ELMT.id.slice(4));
 
-    function deleteReview(index)
-    {
-        if (index < 0 || index >= REVIEW_COMMENTS.length)
-        {
-            return;
-        }
+        delete_review_comment_by_id(revienCommentId);
+        REVIEW_COMMENTS.delete(revienCommentId);
 
-        if (REV_INDEX >= 0 && REV_INDEX < REVIEW_COMMENTS.length)
-        {
-            document.getElementById('rev_'+REV_INDEX).classList.remove("w3-light-blue");
-            document.getElementById('rev_'+REV_INDEX).classList.add("w3-blue-grey");
-            REV_INDEX = -1;
-        }
+        REV_COMM_LIST.removeChild(CUR_COMM_ELMT);
+        CUR_COMM_ELMT = null;
 
-        REVIEW_COMMENTS.splice(index, 1);
-        var rev = document.getElementById('rev_' + index);
-        var list = rev.parentNode;
-        list.removeChild(rev);
         ace.edit(EDITOR).clearSelection();
-
-        for (var i = index ; i < REVIEW_COMMENTS.length ; i++)
-        {
-            list.children[i].id = "rev_" + i;
-        }
     }
 }
 
@@ -261,62 +264,68 @@ function changeTheme(newTheme)
 {
     function nextReview()
     {
-        if (REVIEW_COMMENTS.length == 0)
+        if (!REV_COMM_LIST.hasChildNodes())
         {
             return;
         }
 
-        selectReview((REV_INDEX + 1) % REVIEW_COMMENTS.length);
+        if (CUR_COMM_ELMT == null || CUR_COMM_ELMT.nextSibling == null)
+        {
+            newElement = REV_COMM_LIST.firstChild;
+        }
+        else
+        {
+            newElement = CUR_COMM_ELMT.nextSibling;
+        }
+
+        selectReview(newElement);
     }
 
     function previousReview()
     {
-        if (REVIEW_COMMENTS.length == 0)
+        if (!REV_COMM_LIST.hasChildNodes())
         {
             return;
         }
 
-        selectReview((REV_INDEX + REVIEW_COMMENTS.length - 1) % REVIEW_COMMENTS.length);
+        if (CUR_COMM_ELMT == null || CUR_COMM_ELMT.previousSibling == null)
+        {
+            previousElement = REV_COMM_LIST.lastChild;
+        }
+        else
+        {
+            previousElement = CUR_COMM_ELMT.previousSibling;
+        }
+
+        selectReview(previousElement);
     }
 
-    function selectReviewById(id)
+    function selectReview(htmlReviewComment)
     {
-        var index = parseInt(id.slice(4));
-
-        if (index < 0 || index >= REVIEW_COMMENTS.length)
+        if (htmlReviewComment == null)
         {
             return;
         }
-
-        selectReview(index);
-    }
-
-    function selectReview(index)
-    {
-        if (index < 0 || index >= REVIEW_COMMENTS.length)
-        {
-            return;
-        }
-
+        
         var editor = ace.edit(EDITOR);
-        var review  = REVIEW_COMMENTS[index];
         var range = editor.getSelectionRange();
         var select_color = 'w3-blue-grey';
         var unselect_color = 'w3-grey';
 
-        if (REV_INDEX >= 0 && REV_INDEX < REVIEW_COMMENTS.length)
+        if (CUR_COMM_ELMT != null)
         {
-            document.getElementById('rev_'+REV_INDEX).classList.remove(select_color);
-            document.getElementById('rev_'+REV_INDEX).classList.add(unselect_color);
+            CUR_COMM_ELMT.classList.remove(select_color);
+            CUR_COMM_ELMT.classList.add(unselect_color);
         }
 
-        REV_INDEX = index;
+        CUR_COMM_ELMT = htmlReviewComment;
+        var reviewComment = REVIEW_COMMENTS.get(parseInt(CUR_COMM_ELMT.id.slice(4)));
 
-        range.setStart(review.fromrow, review.fromcol);
-        range.setEnd(review.torow, review.tocol);
+        range.setStart(reviewComment.fromrow, reviewComment.fromcol);
+        range.setEnd(reviewComment.torow, reviewComment.tocol);
         editor.getSession().getSelection().setSelectionRange(range);
 
-        document.getElementById('rev_'+REV_INDEX).classList.remove(unselect_color);
-        document.getElementById('rev_'+REV_INDEX).classList.add(select_color);
+        CUR_COMM_ELMT.classList.remove(unselect_color);
+        CUR_COMM_ELMT.classList.add(select_color);
     }
 }
