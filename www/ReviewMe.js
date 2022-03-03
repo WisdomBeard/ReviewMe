@@ -3,7 +3,8 @@ var REVIEW_COMMENTS = [];
 var CUR_REVIEWER    = "";
 var REV_INDEX       = -1;
 var REV_UUID        = "";
-const URL_REGEX = new RegExp('^(https?)(://)([^/:]+)(:[0-9]{1,5})?(/.*)?$');
+const URL_REGEX     = new RegExp('^(https?)(://)([^/:]+)(:[0-9]{1,5})?(/.*)?$');
+var MODELIST        = ace.require("ace/ext/modelist");
 
 // Upload
 
@@ -126,7 +127,18 @@ function init_JS_Reviewer()
             jval = JSON.parse(this.responseText);
             document.insertFullLines(0, jval.file_content.split(/\r?\n/));
 
-            digestReviews(jval.comments);
+            clearReviews();
+
+            let reviews = jval.comments;
+
+            for (let index in reviews)
+            {
+                _createReview(new ReviewComment(reviews[index].reviewer, reviews[index].fromrow, reviews[index].fromcol, reviews[index].torow, reviews[index].tocol, reviews[index].comment, reviews[index].id));
+            }
+
+            session.setMode(MODELIST.getModeForPath(jval.file_name).mode);
+            editor.clearSelection();
+            editor.navigateFileStart();
         }
         xhttp.open("GET", "reviews/" + parts[1]);
         xhttp.send();
@@ -136,42 +148,6 @@ function init_JS_Reviewer()
 function changeTheme(newTheme)
 {
     ace.edit(EDITOR).setOption("theme", "ace/theme/" + newTheme);
-}
-
-// MODE SWITCHING
-{
-    function digestReviews(reviews)
-    {
-        var editor = ace.edit(EDITOR);
-        var session = editor.getSession();
-
-        clearReviews();
-
-        var language = 'cpp';
-        var reviewer2reviewsNumber = [];
-        for (let index in reviews)
-        {
-            _createReview(new ReviewComment(reviews[index].reviewer, reviews[index].fromrow, reviews[index].fromcol, reviews[index].torow, reviews[index].tocol, reviews[index].comment, reviews[index].id));
-
-            if (reviewer2reviewsNumber[reviewer] == undefined)
-            {
-                reviewer2reviewsNumber[reviewer] = 1;
-            }
-            else
-            {
-                reviewer2reviewsNumber[reviewer]++;
-            }
-        }
-
-        session.setMode("ace/mode/" + language);
-        editor.clearSelection();
-        editor.navigateFileStart();
-
-        for (var reviewer in reviewer2reviewsNumber)
-        {
-            console.log(`${reviewer} : ${reviewer2reviewsNumber[reviewer]} reviews`);
-        }
-    }
 }
 
 // REVIEW CREATION
