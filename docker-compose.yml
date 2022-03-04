@@ -3,6 +3,7 @@ services:
   db:
     image: redis:7.0-rc2-bullseye
   reviewme:
+    build: .
     image: reviewme:latest
     ports:
       - 8080:8080
