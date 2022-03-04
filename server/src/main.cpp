@@ -156,19 +156,25 @@ int main(int argc, char* argv[])
             return ctx->sendString(strId);
         });
 
-        router.POST("/reviews/{uuid}/comments", [&redis](const HttpContextPtr& ctx) {
+        router.POST("/reviews/{uuid}/comments", [&uuidgen, &redis](const HttpContextPtr& ctx) {
             try {
                 auto params = ctx->params();
 // cout << "POST comment on uuid: " << params["uuid"] << endl;
                 auto jBody = ctx->json();
 // cout << "comment: " << ctx->body() << endl;
-                redis.hset(params["uuid"], to_string(jBody["id"].get<int>()), ctx->body());
+
+                // Generate uuid
+                boost::uuids::uuid id = uuidgen();
+                jBody["id"] = to_string(id);
+
+                redis.hset(params["uuid"], jBody["id"].get<string>(), jBody.dump());
+
+                return ctx->sendJson(jBody);
             } catch (exception& e) {
                 cerr << "Failed to update a reviewing in Redis DB:" << endl << e.what() << endl;
                 return static_cast< int >(HTTP_STATUS_INTERNAL_SERVER_ERROR);
             }
     // cout << "/reviews/" << params["uuid"] << "/comments --> " << ctx->body() << endl;
-            return static_cast< int >(HTTP_STATUS_OK);
         });
 
         router.Delete("/reviews/{uuid}/comments/{revid}", [&redis](HttpRequest* req, HttpResponse* resp) {

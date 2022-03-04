@@ -36,6 +36,15 @@ function post_review_comment(review_comment) {
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "reviews/"+REV_UUID+"/comments", true);
     xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.onreadystatechange = function() {
+        if(xhttp.readyState == 4 && xhttp.status == 200) {
+            var new_review_comment = JSON.parse(xhttp.responseText);
+            review_comment.id = new_review_comment.id;
+            _createReview(review_comment);
+            // console.log("console.log(review_comment);");
+            // console.log(review_comment);
+        }
+    }
     xhttp.send(JSON.stringify(review_comment));
 }
 
@@ -50,19 +59,9 @@ function delete_review_comment_by_id(review_comment_id) {
 
 class ReviewComment
 {
-    static next_id = 0;
-
     constructor(_reviewer, _fromrow, _fromcol, _torow, _tocol, _comment, _id = undefined)
     {
-        if (_id)
-        {
-            this.id = _id;
-            ReviewComment.next_id = Math.max(ReviewComment.next_id, _id+1);
-        }
-        else
-        {
-            this.id = ReviewComment.next_id++;
-        }
+        this.id = _id;
         this.reviewer = _reviewer;
         this.fromrow  = _fromrow;
         this.fromcol  = _fromcol;
@@ -158,11 +157,13 @@ function changeTheme(newTheme)
 
             clearLocalReviews();
 
-            let reviews = jval.comments;
+            let comments = jval.comments;
 
-            for (let index in reviews)
+            for (let index in comments)
             {
-                _createReview(new ReviewComment(reviews[index].reviewer, reviews[index].fromrow, reviews[index].fromcol, reviews[index].torow, reviews[index].tocol, reviews[index].comment, reviews[index].id));
+                // console.log("_createReview console.log(comments[index]);");
+                // console.log(comments[index]);
+                _createReview(new ReviewComment(comments[index].reviewer, comments[index].fromrow, comments[index].fromcol, comments[index].torow, comments[index].tocol, comments[index].comment, comments[index].id));
             }
 
             session.setMode(MODELIST.getModeForPath(jval.file_name).mode);
@@ -188,10 +189,11 @@ function changeTheme(newTheme)
 
     function _createReview(review)
     {
+        // console.log("_createReview console.log(review);");
+        // console.log(review);
         REVIEW_COMMENTS.set(review.id, review);
-
         var new_rev = document.getElementById("review_template").cloneNode(true);
-        new_rev.id = "rev_" + review.id;
+        new_rev.id = review.id;
         new_rev.children[0].innerText = review.toString();
         REV_COMM_LIST.appendChild(new_rev);
         new_rev.style.display = '';
@@ -220,11 +222,9 @@ function changeTheme(newTheme)
             return;
         }
 
-        var review = new ReviewComment(CUR_REVIEWER, range.start.row, range.start.column, range.end.row, range.end.column, comment);
+        var reviewComment = new ReviewComment(CUR_REVIEWER, range.start.row, range.start.column, range.end.row, range.end.column, comment);
 
-        _createReview(review);
-
-        post_review_comment(review);
+        post_review_comment(reviewComment);
     }
 }
 
@@ -248,10 +248,8 @@ function changeTheme(newTheme)
             return;
         }
 
-        var revienCommentId = parseInt(CUR_COMM_ELMT.id.slice(4));
-
-        delete_review_comment_by_id(revienCommentId);
-        REVIEW_COMMENTS.delete(revienCommentId);
+        delete_review_comment_by_id(CUR_COMM_ELMT.id);
+        REVIEW_COMMENTS.delete(CUR_COMM_ELMT.id);
 
         REV_COMM_LIST.removeChild(CUR_COMM_ELMT);
         CUR_COMM_ELMT = null;
@@ -319,7 +317,11 @@ function changeTheme(newTheme)
         }
 
         CUR_COMM_ELMT = htmlReviewComment;
-        var reviewComment = REVIEW_COMMENTS.get(parseInt(CUR_COMM_ELMT.id.slice(4)));
+        // console.log("console.log(CUR_COMM_ELMT.id);");
+        // console.log(CUR_COMM_ELMT.id);
+        var reviewComment = REVIEW_COMMENTS.get(CUR_COMM_ELMT.id);
+        // console.log("console.log(reviewComment);");
+        // console.log(reviewComment);
 
         range.setStart(reviewComment.fromrow, reviewComment.fromcol);
         range.setEnd(reviewComment.torow, reviewComment.tocol);
